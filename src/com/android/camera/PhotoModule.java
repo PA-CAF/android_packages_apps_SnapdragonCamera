@@ -1423,7 +1423,11 @@ public class PhotoModule
             if(mSnapshotMode == CameraInfo.CAMERA_SUPPORT_MODE_ZSL) {
                 Log.v(TAG, "JpegPictureCallback : in zslmode");
                 mParameters = mCameraDevice.getParameters();
-                mBurstSnapNum = mParameters.getInt("num-snaps-per-shutter");
+                if (CameraUtil.isBurstSupported(mParameters)) {
+                    mBurstSnapNum = mParameters.getInt("num-snaps-per-shutter");
+                } else {
+                    mBurstSnapNum = 1;
+                }
             }
             Log.v(TAG, "JpegPictureCallback: Received = " + mReceivedSnapNum +
                       "Burst count = " + mBurstSnapNum);
@@ -1865,7 +1869,11 @@ public class PhotoModule
             mParameters = mCameraDevice.getParameters();
         }
 
-        mBurstSnapNum = mParameters.getInt("num-snaps-per-shutter");
+        if (CameraUtil.isBurstSupported(mParameters)) {
+            mBurstSnapNum = mParameters.getInt("num-snaps-per-shutter");
+        } else {
+            mBurstSnapNum = 1;
+        }
         mReceivedSnapNum = 0;
         mPreviewRestartSupport = SystemProperties.getBoolean(
                 PERSIST_PREVIEW_RESTART, false);
@@ -2964,6 +2972,9 @@ public class PhotoModule
                 }
                 return true;
         case KeyEvent.KEYCODE_DPAD_LEFT:
+            if (!CameraUtil.isSupported(mParameters, "luma-adaptation")) {
+                break;
+            }
             if ( (mCameraState != PREVIEW_STOPPED) && (mFocusManager != null) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
@@ -2985,6 +2996,9 @@ public class PhotoModule
             }
             break;
            case KeyEvent.KEYCODE_DPAD_RIGHT:
+            if (!CameraUtil.isSupported(mParameters, "luma-adaptation")) {
+                break;
+            }
             if ( (mCameraState != PREVIEW_STOPPED) && (mFocusManager != null) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
@@ -3379,22 +3393,26 @@ public class PhotoModule
         }
 
         //Set Saturation
-        String saturationStr = mPreferences.getString(
-                CameraSettings.KEY_SATURATION,
-                mActivity.getString(R.string.pref_camera_saturation_default));
-        int saturation = Integer.parseInt(saturationStr);
-        Log.v(TAG, "Saturation value =" + saturation);
-        if((0 <= saturation) && (saturation <= mParameters.getMaxSaturation())){
-            mParameters.setSaturation(saturation);
+        if (CameraUtil.isSupported(mParameters, "saturation")) {
+            String saturationStr = mPreferences.getString(
+                    CameraSettings.KEY_SATURATION,
+                    mActivity.getString(R.string.pref_camera_saturation_default));
+            int saturation = Integer.parseInt(saturationStr);
+            Log.v(TAG, "Saturation value =" + saturation);
+            if((0 <= saturation) && (saturation <= mParameters.getMaxSaturation())){
+                mParameters.setSaturation(saturation);
+            }
         }
         // Set contrast parameter.
-        String contrastStr = mPreferences.getString(
-                CameraSettings.KEY_CONTRAST,
-                mActivity.getString(R.string.pref_camera_contrast_default));
-        int contrast = Integer.parseInt(contrastStr);
-        Log.v(TAG, "Contrast value =" +contrast);
-        if((0 <= contrast) && (contrast <= mParameters.getMaxContrast())){
-            mParameters.setContrast(contrast);
+        if (CameraUtil.isSupported(mParameters, "contrast")) {
+            String contrastStr = mPreferences.getString(
+                    CameraSettings.KEY_CONTRAST,
+                    mActivity.getString(R.string.pref_camera_contrast_default));
+            int contrast = Integer.parseInt(contrastStr);
+            Log.v(TAG, "Contrast value =" + contrast);
+            if ((0 <= contrast) && (contrast <= mParameters.getMaxContrast())) {
+                mParameters.setContrast(contrast);
+            }
         }
         // Set sharpness parameter
         String sharpnessStr = mPreferences.getString(
