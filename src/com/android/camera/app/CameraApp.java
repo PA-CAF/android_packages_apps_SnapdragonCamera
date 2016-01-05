@@ -43,6 +43,9 @@ public class CameraApp extends Application {
             mIsLowMemoryDevice = true;
         }
         SettingsManager.createInstance(this);
+
+        mApp = this;
+
         UsageStatistics.initialize(this);
         CameraUtil.initialize(this);
         SDCard.initialize(this);
