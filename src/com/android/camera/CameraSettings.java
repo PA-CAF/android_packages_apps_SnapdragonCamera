@@ -833,6 +833,12 @@ public class CameraSettings {
             mIso = removeLeadingISO(mIso);
         }
 
+        // Remove leading ISO from iso-values
+        boolean isoValuesUseNumbers = mContext.getResources().getBoolean(R.bool.iso_values_use_numbers);
+        if (isoValuesUseNumbers && mIso != null) {
+            mIso = removeLeadingISO(mIso);
+        }
+
         if (hdr_need_1x != null) {
             filterUnsupportedOptions(group,
                     hdr_need_1x, getSupportedHDRNeed1x(mParameters));
